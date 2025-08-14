@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Car Shipping BOL Generator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    /* PDF Styling */
+    #pdfContent {
+      width: 210mm;
+      min-height: 297mm;
+      padding: 15mm;
+      background: white;
+      font-family: Arial, sans-serif;
+    }
+    .pdf-header {
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+    .pdf-section {
+      border: 1px solid #000;
+      padding: 8px;
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-weight: bold;
+      background: #f3f4f6;
+      padding: 4px;
+      border-bottom: 1px solid #000;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 8px;
+    }
+    th, td {
+      border: 1px solid #000;
+      padding: 6px;
+      text-align: left;
+      font-size: 12px;
+    }
+    th {
+      background: #e5e7eb;
+    }
+    .preserve-lines {
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-6">
+    <h1 class="text-2xl font-bold mb-4 text-center">Car Shipping - Bill of Lading Generator</h1>
+
+    <form id="bolForm" class="space-y-4">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label>Shipper</label>
+          <input type="text" name="shipper" class="border p-2 rounded w-full" required>
+          <textarea name="shipper_notes" placeholder="Notes" rows="4" class="border p-2 rounded w-full mt-2"></textarea>
+        </div>
+        <div>
+          <label>Consignee</label>
+          <input type="text" name="consignee" class="border p-2 rounded w-full" required>
+          <textarea name="consignee_notes" placeholder="Notes" rows="4" class="border p-2 rounded w-full mt-2"></textarea>
+        </div>
+        <div>
+          <label>Notify Party</label>
+          <input type="text" name="notify" class="border p-2 rounded w-full">
+          <textarea name="notify_notes" placeholder="Notes" rows="4" class="border p-2 rounded w-full mt-2"></textarea>
+        </div>
+        <div>
+          <label>Final Destination</label>
+          <input type="text" name="destination" class="border p-2 rounded w-full">
+        </div>
+        <div>
+          <label>Container Size</label>
+          <input type="text" name="container" class="border p-2 rounded w-full">
+        </div>
+        <div>
+          <label>Shipment Price</label>
+          <input type="text" name="shipment_price" class="border p-2 rounded w-full">
+        </div>
+        <div>
+          <label>Shipping Line Company</label>
+          <input type="text" name="shipping_line" class="border p-2 rounded w-full">
+        </div>
+      </div>
+
+      <h2 class="text-lg font-semibold mt-6">Cars</h2>
+      <table id="carsTable" class="w-full text-sm table-auto border">
+        <thead>
+          <tr>
+            <th>Make/Model</th><th>VIN</th><th>Price</th><th>Condition</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><input type="text" name="car_model[]" class="border p-1 w-full"></td>
+            <td><input type="text" name="car_vin[]" class="border p-1 w-full"></td>
+            <td><input type="text" name="car_price[]" class="border p-1 w-full"></td>
+            <td><input type="text" name="car_condition[]" class="border p-1 w-full"></td>
+            <td><button type="button" onclick="removeRow(this)" class="text-red-600">Remove</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <button type="button" onclick="addRow()" class="bg-blue-600 text-white px-4 py-2 rounded">+ Add Car</button>
+
+      <div class="text-center mt-6">
+        <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded">Generate BOL PDF</button>
+      </div>
+    </form>
+
+    <div id="pdfContent" class="hidden"></div>
+  </div>
+
+  <script>
+    function addRow() {
+      const table = document.getElementById('carsTable').getElementsByTagName('tbody')[0];
+      const newRow = table.insertRow();
+      newRow.innerHTML = `
+        <td><input type="text" name="car_model[]" class="border p-1 w-full"></td>
+        <td><input type="text" name="car_vin[]" class="border p-1 w-full"></td>
+        <td><input type="text" name="car_price[]" class="border p-1 w-full"></td>
+        <td><input type="text" name="car_condition[]" class="border p-1 w-full"></td>
+        <td><button type="button" onclick="removeRow(this)" class="text-red-600">Remove</button></td>
+      `;
+    }
+
+    function removeRow(btn) {
+      btn.closest('tr').remove();
+    }
+
+    document.getElementById('bolForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const data = new FormData(e.target);
+
+      // Build professional PDF layout
+      let html = `
+        <div id="pdfContent">
+          <div class="pdf-header">BILL OF LADING</div>
+
+          <div class="pdf-section">
+            <div class="section-title">Shipper</div>
+            <div class="preserve-lines">${data.get('shipper') || ''}</div>
+            <div class="preserve-lines">${data.get('shipper_notes') || ''}</div>
+          </div>
+
+          <div class="pdf-section">
+            <div class="section-title">Consignee</div>
+            <div class="preserve-lines">${data.get('consignee') || ''}</div>
+            <div class="preserve-lines">${data.get('consignee_notes') || ''}</div>
+          </div>
+
+          <div class="pdf-section">
+            <div class="section-title">Notify Party</div>
+            <div class="preserve-lines">${data.get('notify') || ''}</div>
+            <div class="preserve-lines">${data.get('notify_notes') || ''}</div>
+          </div>
+
+          <div class="pdf-section">
+            <div class="section-title">Final Destination</div>
+            <div>${data.get('destination') || ''}</div>
+          </div>
+
+          <div class="pdf-section">
+            <div class="section-title">Container Size</div>
+            <div>${data.get('container') || ''}</div>
+          </div>
+
+          <div class="pdf-section">
+            <div class="section-title">Shipment Price</div>
+            <div>${data.get('shipment_price') || ''}</div>
+          </div>
+
+          <div class="pdf-section">
+            <div class="section-title">Shipping Line Company</div>
+            <div>${data.get('shipping_line') || ''}</div>
+          </div>
+
+          <div class="pdf-section">
+            <div class="section-title">Car Details</div>
+            <table>
+              <thead>
+                <tr><th>Make/Model</th><th>VIN</th><th>Price</th><th>Condition</th></tr>
+              </thead>
+              <tbody>`;
+
+      const models = data.getAll('car_model[]');
+      const vins = data.getAll('car_vin[]');
+      const prices = data.getAll('car_price[]');
+      const conditions = data.getAll('car_condition[]');
+
+      for (let i = 0; i < models.length; i++) {
+        if (models[i] || vins[i] || prices[i] || conditions[i]) {
+          html += `<tr>
+                    <td>${models[i] || ''}</td>
+                    <td>${vins[i] || ''}</td>
+                    <td>${prices[i] || ''}</td>
+                    <td>${conditions[i] || ''}</td>
+                   </tr>`;
+        }
+      }
+
+      html += `
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+
+      const pdfDiv = document.getElementById('pdfContent');
+      pdfDiv.innerHTML = html;
+      pdfDiv.classList.remove('hidden');
+
+      html2pdf().set({
+        margin: 10,
+        filename: 'BOL.pdf',
+        html2canvas: { scale: 2, scrollY: 0 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid', 'css', 'legacy'] }
+      }).from(pdfDiv).save();
+    });
+  </script>
+</body>
+</html>
