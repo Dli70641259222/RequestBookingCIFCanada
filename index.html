@@ -6,33 +6,41 @@
   <title>Work Schedule</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    table {
+      font-size: 10px; /* smaller text to fit on A4 */
+    }
+    th, td {
+      padding: 4px;
+    }
+  </style>
 </head>
 <body class="bg-gray-100 p-6">
   <div class="max-w-7xl mx-auto bg-white shadow-lg rounded-lg p-6" id="schedule">
-    <h1 class="text-2xl font-bold mb-4 text-center">Weekly Work Schedule</h1>
+    <h1 class="text-xl font-bold mb-4 text-center">Weekly Work Schedule</h1>
 
     <!-- Week Date Range -->
     <div class="flex space-x-4 mb-6 justify-center">
       <div>
         <label class="font-semibold">From:</label>
-        <input type="date" id="dateFrom" class="border p-2 rounded">
+        <input type="date" id="dateFrom" class="border p-2 rounded text-sm">
       </div>
       <div>
         <label class="font-semibold">To:</label>
-        <input type="date" id="dateTo" class="border p-2 rounded">
+        <input type="date" id="dateTo" class="border p-2 rounded text-sm">
       </div>
     </div>
 
     <!-- Table -->
-    <table class="w-full border-collapse border border-gray-400 text-sm">
+    <table class="w-full border-collapse border border-gray-400 text-xs">
       <thead>
         <tr class="bg-gray-200">
-          <th class="border border-gray-400 p-2">Employee</th>
-          <th class="border border-gray-400 p-2">Day</th>
-          <th class="border border-gray-400 p-2">In</th>
-          <th class="border border-gray-400 p-2">Out</th>
-          <th class="border border-gray-400 p-2">Pause (min)</th>
-          <th class="border border-gray-400 p-2">Total (hrs)</th>
+          <th class="border border-gray-400">Employee</th>
+          <th class="border border-gray-400">Day</th>
+          <th class="border border-gray-400">In</th>
+          <th class="border border-gray-400">Out</th>
+          <th class="border border-gray-400">Pause (min)</th>
+          <th class="border border-gray-400">Total (hrs)</th>
         </tr>
       </thead>
       <tbody id="scheduleBody">
@@ -43,7 +51,7 @@
 
   <!-- Export Button -->
   <div class="text-center mt-6">
-    <button onclick="generatePDF()" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700">
+    <button onclick="generatePDF()" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 text-sm">
       Export as PDF
     </button>
   </div>
@@ -60,18 +68,18 @@
 
           if (index === 0) {
             const empCell = document.createElement("td");
-            empCell.className = "border p-2 font-bold align-top";
+            empCell.className = "border font-bold align-top";
             empCell.textContent = emp;
             empCell.rowSpan = days.length + 1; // +1 for total row
             row.appendChild(empCell);
           }
 
           row.innerHTML += `
-            <td class="border p-2">${day}</td>
-            <td class="border p-2"><input type="time" class="time-in border p-1 rounded w-full" data-emp="${emp}" data-day="${day}"></td>
-            <td class="border p-2"><input type="time" class="time-out border p-1 rounded w-full" data-emp="${emp}" data-day="${day}"></td>
-            <td class="border p-2"><input type="number" class="pause border p-1 rounded w-full" data-emp="${emp}" data-day="${day}" placeholder="0"></td>
-            <td class="border p-2 total" data-emp="${emp}" data-day="${day}">0</td>
+            <td class="border">${day}</td>
+            <td class="border"><input type="time" class="time-in border p-1 rounded w-full text-xs" data-emp="${emp}" data-day="${day}"></td>
+            <td class="border"><input type="time" class="time-out border p-1 rounded w-full text-xs" data-emp="${emp}" data-day="${day}"></td>
+            <td class="border"><input type="number" class="pause border p-1 rounded w-full text-xs" data-emp="${emp}" data-day="${day}" placeholder="0"></td>
+            <td class="border total text-center" data-emp="${emp}" data-day="${day}">0</td>
           `;
 
           tbody.appendChild(row);
@@ -80,8 +88,8 @@
         // Weekly total row
         const totalRow = document.createElement("tr");
         totalRow.innerHTML = `
-          <td class="border p-2 text-right font-semibold" colspan="5">Total Weekly Hours</td>
-          <td class="border p-2 font-bold weekly-total" data-emp="${emp}">0</td>
+          <td class="border text-right font-semibold" colspan="5">Total Weekly Hours</td>
+          <td class="border font-bold weekly-total text-center" data-emp="${emp}">0</td>
         `;
         tbody.appendChild(totalRow);
       });
@@ -127,13 +135,26 @@
 
       const element = document.getElementById("schedule");
       const opt = {
-        margin: 0.5,
+        margin: [0.2, 0.2, 0.2, 0.2],
         filename: `Work-Schedule_${from}_to_${to}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+        html2canvas: { scale: 1 },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' },
+        pagebreak: { mode: ['avoid', 'css', 'legacy'] }
       };
-      html2pdf().set(opt).from(element).save();
+
+      html2pdf()
+        .set(opt)
+        .from(element)
+        .toPdf()
+        .get('pdf')
+        .then(function (pdf) {
+          const totalPages = pdf.internal.getNumberOfPages();
+          if (totalPages > 1) {
+            pdf.deletePage(2); // keep only first page
+          }
+        })
+        .save();
     }
 
     // Build table and bind events
