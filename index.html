@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Work Schedule</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-5xl mx-auto bg-white shadow-lg rounded-lg p-6" id="schedule">
+    <h1 class="text-2xl font-bold mb-4 text-center">Weekly Work Schedule</h1>
+
+    <!-- Week Date Range -->
+    <div class="flex space-x-4 mb-6 justify-center">
+      <div>
+        <label class="font-semibold">From:</label>
+        <input type="date" id="dateFrom" class="border p-2 rounded">
+      </div>
+      <div>
+        <label class="font-semibold">To:</label>
+        <input type="date" id="dateTo" class="border p-2 rounded">
+      </div>
+    </div>
+
+    <!-- Table -->
+    <table class="w-full border-collapse border border-gray-400">
+      <thead>
+        <tr class="bg-gray-200">
+          <th class="border border-gray-400 p-2">Employee</th>
+          <th class="border border-gray-400 p-2">In</th>
+          <th class="border border-gray-400 p-2">Out</th>
+          <th class="border border-gray-400 p-2">Pause (min)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="border p-2">Ali</td>
+          <td class="border p-2"><input type="time" class="border p-1 rounded w-full"></td>
+          <td class="border p-2"><input type="time" class="border p-1 rounded w-full"></td>
+          <td class="border p-2"><input type="number" class="border p-1 rounded w-full" placeholder="0"></td>
+        </tr>
+        <tr>
+          <td class="border p-2">Layla</td>
+          <td class="border p-2"><input type="time" class="border p-1 rounded w-full"></td>
+          <td class="border p-2"><input type="time" class="border p-1 rounded w-full"></td>
+          <td class="border p-2"><input type="number" class="border p-1 rounded w-full" placeholder="0"></td>
+        </tr>
+        <tr>
+          <td class="border p-2">Tony</td>
+          <td class="border p-2"><input type="time" class="border p-1 rounded w-full"></td>
+          <td class="border p-2"><input type="time" class="border p-1 rounded w-full"></td>
+          <td class="border p-2"><input type="number" class="border p-1 rounded w-full" placeholder="0"></td>
+        </tr>
+        <tr>
+          <td class="border p-2">Khodor</td>
+          <td class="border p-2"><input type="time" class="border p-1 rounded w-full"></td>
+          <td class="border p-2"><input type="time" class="border p-1 rounded w-full"></td>
+          <td class="border p-2"><input type="number" class="border p-1 rounded w-full" placeholder="0"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Export Button -->
+  <div class="text-center mt-6">
+    <button onclick="generatePDF()" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700">
+      Export as PDF
+    </button>
+  </div>
+
+  <script>
+    function generatePDF() {
+      // Add date range to the PDF title
+      const from = document.getElementById("dateFrom").value;
+      const to = document.getElementById("dateTo").value;
+
+      const element = document.getElementById("schedule");
+      const opt = {
+        margin: 0.5,
+        filename: `Work-Schedule_${from}_to_${to}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(element).save();
+    }
+  </script>
+</body>
+</html>
