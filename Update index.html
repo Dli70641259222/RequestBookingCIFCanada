@@ -6,10 +6,47 @@
   <title>Work Schedule</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    @media print {
+      body {
+        margin: 0;
+        padding: 5px;
+      }
+      #schedule {
+        box-shadow: none;
+        padding: 10px;
+      }
+    }
+    
+    /* Optimize for single A4 page */
+    body {
+      font-size: 11px;
+    }
+    
+    table {
+      font-size: 10px;
+    }
+    
+    input[type="time"],
+    input[type="number"],
+    input[type="date"] {
+      font-size: 9px;
+      padding: 2px;
+    }
+    
+    h1 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+    
+    td, th {
+      padding: 4px !important;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 p-6">
-  <div class="max-w-7xl mx-auto bg-white shadow-lg rounded-lg p-6" id="schedule">
-    <h1 class="text-2xl font-bold mb-6 text-center">Weekly Work Schedule</h1>
+<body class="bg-gray-100 p-2">
+  <div class="max-w-full mx-auto bg-white shadow-lg rounded-lg p-3" id="schedule">
+    <h1 class="text-2xl font-bold mb-2 text-center">Weekly Work Schedule</h1>
 
     <!-- Table -->
     <table class="w-full border-collapse border border-gray-400 text-sm text-center">
@@ -17,22 +54,22 @@
         <tr class="bg-gray-200">
           <th class="border border-gray-400 p-2">Employee</th>
           <th class="border border-gray-400 p-2">
-            Monday <br><input type="date" class="dateField border rounded p-1 w-full">
+            Monday <br><input type="date" class="dateField border rounded p-1 w-full" style="font-size: 8px;">
           </th>
           <th class="border border-gray-400 p-2">
-            Tuesday <br><input type="date" class="dateField border rounded p-1 w-full">
+            Tuesday <br><input type="date" class="dateField border rounded p-1 w-full" style="font-size: 8px;">
           </th>
           <th class="border border-gray-400 p-2">
-            Wednesday <br><input type="date" class="dateField border rounded p-1 w-full">
+            Wednesday <br><input type="date" class="dateField border rounded p-1 w-full" style="font-size: 8px;">
           </th>
           <th class="border border-gray-400 p-2">
-            Thursday <br><input type="date" class="dateField border rounded p-1 w-full">
+            Thursday <br><input type="date" class="dateField border rounded p-1 w-full" style="font-size: 8px;">
           </th>
           <th class="border border-gray-400 p-2">
-            Friday <br><input type="date" class="dateField border rounded p-1 w-full">
+            Friday <br><input type="date" class="dateField border rounded p-1 w-full" style="font-size: 8px;">
           </th>
           <th class="border border-gray-400 p-2">
-            Saturday <br><input type="date" class="dateField border rounded p-1 w-full">
+            Saturday <br><input type="date" class="dateField border rounded p-1 w-full" style="font-size: 8px;">
           </th>
           <th class="border border-gray-400 p-2 bg-gray-300">Weekly Total</th>
         </tr>
@@ -56,14 +93,15 @@
   </div>
 
   <!-- Export Button -->
-  <div class="text-center mt-6">
+  <div class="text-center mt-4">
     <button onclick="generatePDF()" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700">
       Export as PDF
     </button>
   </div>
 
   <script>
-    const employees = ["Ali", "Layla", "Tony", "Khodor"];
+    // Updated employee list: Tony replaced with Ali Fadlallah, Hadi added
+    const employees = ["Ali", "Layla", "Ali Fadlallah", "Khodor", "Hadi"];
 
     function createTable() {
       const body = document.getElementById("scheduleBody");
@@ -73,12 +111,12 @@
           <td class="border p-2 font-semibold">${emp}</td>`;
         for (let i = 1; i <= 6; i++) {
           row += `
-            <td class="border p-2">
-              <input type="time" class="in border p-1 rounded w-full" onchange="calculateTotals()">
-              -
-              <input type="time" class="out border p-1 rounded w-full" onchange="calculateTotals()">
+            <td class="border p-1">
+              <input type="time" class="in border p-1 rounded w-full" onchange="calculateTotals()" style="font-size: 9px;">
+              <span style="font-size: 10px;">-</span>
+              <input type="time" class="out border p-1 rounded w-full" onchange="calculateTotals()" style="font-size: 9px;">
               <br>
-              <input type="number" class="pause border p-1 rounded w-full" placeholder="Pause" onchange="calculateTotals()">
+              <input type="number" class="pause border p-1 rounded w-full" placeholder="Pause" onchange="calculateTotals()" style="font-size: 9px;">
             </td>`;
         }
         row += `<td class="border p-2 font-bold bg-gray-100" id="empTotal${empIndex}">0</td></tr>`;
@@ -132,15 +170,25 @@
       });
     }
 
-    // Export to PDF
+    // Export to PDF - Optimized for single A4 page in landscape
     function generatePDF() {
       const element = document.getElementById("schedule");
       const opt = {
-        margin: [0.2, 0.2, 0.2, 0.2],
+        margin: [0.15, 0.15, 0.15, 0.15],
         filename: `Work-Schedule.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 1 },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          logging: false
+        },
+        jsPDF: { 
+          unit: 'in', 
+          format: 'a4', 
+          orientation: 'landscape',
+          compress: true
+        },
+        pagebreak: { mode: 'avoid-all' }
       };
       html2pdf().set(opt).from(element).save();
     }
