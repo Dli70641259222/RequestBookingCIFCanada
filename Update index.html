@@ -1,161 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Work Schedule</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Work Schedule</title>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<!-- Tailwind -->
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-  <style>
-    @media print {
-      body { margin: 0; padding: 5px; }
-      #schedule { box-shadow: none; padding: 10px; }
-    }
+<!-- PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    body { font-size: 11px; }
-    table { font-size: 10px; }
-
-    input[type="time"],
-    input[type="number"],
-    input[type="date"] {
-      font-size: 9px;
-      padding: 2px;
-    }
-
-    h1 {
-      font-size: 18px;
-      margin-bottom: 8px;
-    }
-
-    td, th {
-      padding: 4px !important;
-    }
-  </style>
+<style>
+  body { font-size: 12px; }
+  table { font-size: 11px; }
+  td, th { padding: 6px !important; }
+</style>
 </head>
 
-<body class="bg-gray-100 p-2">
+<body class="bg-gray-100 p-4">
 
-<div class="max-w-full mx-auto bg-white shadow-lg rounded-lg p-3" id="schedule">
-  <h1 class="text-2xl font-bold mb-2 text-center">Weekly Work Schedule</h1>
+<div id="schedule" class="bg-white p-4 rounded shadow-lg">
 
-  <table class="w-full border-collapse border border-gray-400 text-sm text-center">
-    <thead>
-      <tr class="bg-gray-200">
-        <th class="border p-2">Employee</th>
-        <th class="border p-2">Monday<br><input type="date" class="dateField w-full"></th>
-        <th class="border p-2">Tuesday<br><input type="date" class="dateField w-full"></th>
-        <th class="border p-2">Wednesday<br><input type="date" class="dateField w-full"></th>
-        <th class="border p-2">Thursday<br><input type="date" class="dateField w-full"></th>
-        <th class="border p-2">Friday<br><input type="date" class="dateField w-full"></th>
-        <th class="border p-2">Saturday<br><input type="date" class="dateField w-full"></th>
-        <th class="border p-2 bg-gray-300">Weekly Total</th>
+  <h1 class="text-xl font-bold text-center mb-4">
+    Weekly Work Schedule
+  </h1>
+
+  <table class="w-full border text-center">
+
+    <thead class="bg-gray-800 text-white">
+      <tr>
+        <th>Employee</th>
+        <th>Mon</th>
+        <th>Tue</th>
+        <th>Wed</th>
+        <th>Thu</th>
+        <th>Fri</th>
+        <th>Sat</th>
+        <th>Total</th>
       </tr>
     </thead>
 
-    <tbody id="scheduleBody"></tbody>
+    <tbody id="body"></tbody>
 
-    <tfoot>
-      <tr class="bg-gray-100 font-bold">
-        <td class="border p-2">TOTAL (hours)</td>
-        <td id="total1">0</td>
-        <td id="total2">0</td>
-        <td id="total3">0</td>
-        <td id="total4">0</td>
-        <td id="total5">0</td>
-        <td id="total6">0</td>
-        <td class="bg-gray-200">--</td>
+    <tfoot class="bg-gray-200 font-bold">
+      <tr>
+        <td>Total</td>
+        <td id="d1">0</td>
+        <td id="d2">0</td>
+        <td id="d3">0</td>
+        <td id="d4">0</td>
+        <td id="d5">0</td>
+        <td id="d6">0</td>
+        <td>-</td>
       </tr>
     </tfoot>
+
   </table>
 </div>
 
+<!-- Button -->
 <div class="text-center mt-4">
-  <button onclick="generatePDF()" class="bg-blue-600 text-white px-6 py-2 rounded-lg">
-    Export as PDF
+  <button onclick="exportPDF()" class="bg-blue-600 text-white px-6 py-2 rounded">
+    Export PDF
   </button>
 </div>
 
 <script>
 
-  // ✅ UPDATED EMPLOYEES (Hojeij added)
-  const employees = ["Ali", "Layla", "Ali Fadlallah", "Khodor", "Hadi", "Hojeij"];
+// ✅ Employees (Hojeij added)
+const employees = ["Ali","Layla","Ali Fadlallah","Khodor","Hadi","Hojeij"];
 
-  function createTable() {
-    const body = document.getElementById("scheduleBody");
-    body.innerHTML = "";
+// Create table
+function createTable() {
+  const body = document.getElementById("body");
 
-    employees.forEach((emp, empIndex) => {
-      let row = `<tr>
-        <td class="border p-2 font-semibold">${emp}</td>`;
+  employees.forEach((name, i) => {
 
-      for (let i = 0; i < 6; i++) {
-        row += `
-        <td class="border p-1">
-          <input type="time" class="in w-full" onchange="calculateTotals()">
-          <span>-</span>
-          <input type="time" class="out w-full" onchange="calculateTotals()">
-          <br>
-          <input type="number" class="pause w-full" placeholder="Pause (min)" onchange="calculateTotals()">
-        </td>`;
-      }
+    let row = `<tr>
+      <td class="font-bold">${name}</td>`;
 
-      row += `<td class="border p-2 font-bold bg-gray-100" id="empTotal${empIndex}">0</td></tr>`;
-      body.innerHTML += row;
-    });
-  }
-
-  function calculateTotals() {
-
-    // Reset daily totals
-    for (let d = 1; d <= 6; d++) {
-      document.getElementById("total" + d).textContent = 0;
+    for (let d = 0; d < 6; d++) {
+      row += `
+      <td>
+        <input type="time" class="in w-full" onchange="calculate()">
+        <input type="time" class="out w-full" onchange="calculate()">
+      </td>`;
     }
 
-    document.querySelectorAll("#scheduleBody tr").forEach((row, empIndex) => {
+    row += `<td id="t${i}">0</td></tr>`;
 
-      let empTotal = 0;
+    body.innerHTML += row;
+  });
+}
 
-      for (let d = 0; d < 6; d++) {
+// Calculate hours
+function calculate() {
 
-        const inTime = row.querySelectorAll(".in")[d].value;
-        const outTime = row.querySelectorAll(".out")[d].value;
-        const pause = parseInt(row.querySelectorAll(".pause")[d].value) || 0;
+  // Reset daily totals
+  for (let i = 1; i <= 6; i++) {
+    document.getElementById("d" + i).textContent = 0;
+  }
 
-        if (inTime && outTime) {
+  // Loop rows
+  document.querySelectorAll("#body tr").forEach((row, i) => {
 
-          const [h1, m1] = inTime.split(":").map(Number);
-          const [h2, m2] = outTime.split(":").map(Number);
+    let total = 0;
 
-          let diff = (h2 * 60 + m2) - (h1 * 60 + m1) - pause;
+    for (let d = 0; d < 6; d++) {
 
-          if (diff > 0) {
-            empTotal += diff;
+      let inTime = row.querySelectorAll(".in")[d].value;
+      let outTime = row.querySelectorAll(".out")[d].value;
 
-            let dayCell = document.getElementById("total" + (d + 1));
-            dayCell.textContent = (parseFloat(dayCell.textContent) + diff / 60).toFixed(2);
-          }
+      if (inTime && outTime) {
+
+        let [h1, m1] = inTime.split(":").map(Number);
+        let [h2, m2] = outTime.split(":").map(Number);
+
+        // subtract 30 min break
+        let diff = (h2*60 + m2) - (h1*60 + m1) - 30;
+
+        if (diff > 0) {
+          total += diff;
+
+          let dayCell = document.getElementById("d" + (d+1));
+          dayCell.textContent =
+            (parseFloat(dayCell.textContent) + diff/60).toFixed(2);
         }
       }
+    }
 
-      document.getElementById("empTotal" + empIndex).textContent = (empTotal / 60).toFixed(2);
-    });
-  }
+    document.getElementById("t" + i).textContent =
+      (total / 60).toFixed(2);
+  });
+}
 
-  function generatePDF() {
-    const element = document.getElementById("schedule");
+// Export PDF
+function exportPDF() {
+  html2pdf().from(document.getElementById("schedule")).save();
+}
 
-    html2pdf().set({
-      margin: 0.2,
-      filename: "Work-Schedule.pdf",
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
-    }).from(element).save();
-  }
-
-  // INIT
-  createTable();
+// Init
+createTable();
 
 </script>
 
