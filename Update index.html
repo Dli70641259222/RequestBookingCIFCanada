@@ -2,167 +2,51 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Work Schedule</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- Tailwind -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-
-  <style>
-    body {
-      font-size: 12px;
-    }
-
-    table {
-      font-size: 11px;
-    }
-
-    input {
-      font-size: 10px;
-    }
-
-    th {
-      background: #1f2937;
-      color: white;
-    }
-
-    td, th {
-      padding: 6px !important;
-    }
-
-    tr:hover {
-      background-color: #f3f4f6;
-    }
-  </style>
 </head>
 
 <body class="bg-gray-100 p-4">
 
-  <div class="max-w-full mx-auto bg-white shadow-xl rounded-xl p-4" id="schedule">
-    
-    <h1 class="text-2xl font-bold text-center mb-4 text-gray-800">
-      Weekly Work Schedule
-    </h1>
+<div class="bg-white p-4 rounded shadow">
+  <h1 class="text-xl font-bold text-center mb-4">Weekly Work Schedule</h1>
 
-    <table class="w-full border border-gray-300 text-center rounded-lg overflow-hidden">
-      
-      <thead>
-        <tr>
-          <th>Employee</th>
-          <th>Mon<br><input type="date" class="w-full"></th>
-          <th>Tue<br><input type="date" class="w-full"></th>
-          <th>Wed<br><input type="date" class="w-full"></th>
-          <th>Thu<br><input type="date" class="w-full"></th>
-          <th>Fri<br><input type="date" class="w-full"></th>
-          <th>Sat<br><input type="date" class="w-full"></th>
-          <th class="bg-gray-700">Total</th>
-        </tr>
-      </thead>
+  <table class="w-full border text-center">
+    <thead class="bg-gray-800 text-white">
+      <tr>
+        <th>Employee</th>
+        <th>Mon</th>
+        <th>Tue</th>
+        <th>Wed</th>
+        <th>Thu</th>
+        <th>Fri</th>
+        <th>Sat</th>
+        <th>Total</th>
+      </tr>
+    </thead>
 
-      <tbody id="scheduleBody"></tbody>
+    <tbody id="tableBody"></tbody>
 
-      <tfoot>
-        <tr class="bg-gray-200 font-bold">
-          <td>TOTAL</td>
-          <td id="total1">0</td>
-          <td id="total2">0</td>
-          <td id="total3">0</td>
-          <td id="total4">0</td>
-          <td id="total5">0</td>
-          <td id="total6">0</td>
-          <td>--</td>
-        </tr>
-      </tfoot>
+    <tfoot class="bg-gray-200 font-bold">
+      <tr>
+        <td>Total</td>
+        <td id="d1">0</td>
+        <td id="d2">0</td>
+        <td id="d3">0</td>
+        <td id="d4">0</td>
+        <td id="d5">0</td>
+        <td id="d6">0</td>
+        <td>-</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
 
-    </table>
-  </div>
-
-  <div class="text-center mt-5">
-    <button onclick="generatePDF()" 
-      class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg shadow-lg">
-      Export PDF
-    </button>
-  </div>
-
-<script>
-
-  // ✅ UPDATED EMPLOYEES (Hojeij added)
-  const employees = ["Ali", "Layla", "Ali Fadlallah", "Khodor", "Hadi", "Hojeij"];
-
-  function createTable() {
-    const body = document.getElementById("scheduleBody");
-    body.innerHTML = "";
-
-    employees.forEach((emp, empIndex) => {
-      let row = `<tr>
-        <td class="font-semibold">${emp}</td>`;
-
-      for (let i = 0; i < 6; i++) {
-        row += `
-        <td>
-          <input type="time" class="in w-full" onchange="calculateTotals()">
-          <span>-</span>
-          <input type="time" class="out w-full" onchange="calculateTotals()">
-          <input type="number" placeholder="Pause" class="pause w-full mt-1" onchange="calculateTotals()">
-        </td>`;
-      }
-
-      row += `<td id="empTotal${empIndex}" class="font-bold bg-gray-100">0</td></tr>`;
-      body.innerHTML += row;
-    });
-  }
-
-  function calculateTotals() {
-
-    // reset daily totals
-    for (let d = 1; d <= 6; d++) {
-      document.getElementById("total"+d).textContent = 0;
-    }
-
-    document.querySelectorAll("#scheduleBody tr").forEach((row, empIndex) => {
-
-      let empTotal = 0;
-
-      for (let d = 0; d < 6; d++) {
-
-        const inTime = row.querySelectorAll(".in")[d].value;
-        const outTime = row.querySelectorAll(".out")[d].value;
-        const pause = parseInt(row.querySelectorAll(".pause")[d].value) || 0;
-
-        if (inTime && outTime) {
-
-          const [inH, inM] = inTime.split(":").map(Number);
-          const [outH, outM] = outTime.split(":").map(Number);
-
-          let diff = (outH*60 + outM) - (inH*60 + inM) - pause;
-
-          if (diff > 0) {
-            empTotal += diff;
-
-            let currentDay = parseFloat(document.getElementById("total"+(d+1)).textContent) || 0;
-            document.getElementById("total"+(d+1)).textContent = (currentDay + diff/60).toFixed(2);
-          }
-        }
-      }
-
-      document.getElementById("empTotal"+empIndex).textContent = (empTotal/60).toFixed(2);
-    });
-  }
-
-  function generatePDF() {
-    const element = document.getElementById("schedule");
-
-    html2pdf().set({
-      margin: 0.2,
-      filename: "Work-Schedule.pdf",
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
-    }).from(element).save();
-  }
-
-  createTable();
-
-</script>
+<!-- JS FILE -->
+<script src="script.js"></script>
 
 </body>
 </html>
